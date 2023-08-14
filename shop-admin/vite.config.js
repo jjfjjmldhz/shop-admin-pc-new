@@ -14,6 +14,17 @@ export default defineConfig({
       "@": path.resolve(__dirname, "src")
     }
   },
+  // 处理跨域CORS
+  server: {
+    proxy: {
+      "/api": {
+        target: 'http://ceshi13.dishait.cn', // baseURL
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
+  },
+  // 插件
   plugins: [
     vue(),
     // 2.调用WindiCSS

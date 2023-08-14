@@ -12,6 +12,12 @@ export const router = createRouter({
       path: '/',
       redirect: '/index'
     },
+    // 404页面 (NotFound.vue)
+    {
+      name: 'not-found',
+      path: '/:pathMatch(.*)',
+      component: () => import('@/pages/NotFound.vue')
+    },
     // 后台首页 (Index.vue)
     {
       name: 'index',
@@ -24,11 +30,11 @@ export const router = createRouter({
       path: '/about',
       component: () => import('@/pages/About.vue')
     },
-    // 404页面 (NotFound.vue)
+    // 登录页面 (Login.vue)
     {
-      name: 'not-found',
-      path: '/:pathMatch(.*)',
-      component: () => import('@/pages/NotFound.vue')
+      name: 'login',
+      path: '/login',
+      component: () => import('@/pages/Login.vue')
     }
   ]
 })
