@@ -3,9 +3,8 @@
 </script>
 
 <template>
-  <div class="app">
-    <!-- router-view: 占位 -->
-    <router-view></router-view>
+  <div class="not-found">
+    <h2>not-found组件</h2>
   </div>
 </template>
 

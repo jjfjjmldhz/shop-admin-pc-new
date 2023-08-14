@@ -3,9 +3,8 @@
 </script>
 
 <template>
-  <div class="app">
-    <!-- router-view: 占位 -->
-    <router-view></router-view>
+  <div class="about">
+    <h2>about组件</h2>
   </div>
 </template>
 
