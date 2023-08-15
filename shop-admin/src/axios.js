@@ -1,6 +1,6 @@
 import axios from 'axios'
-import { ElNotification } from 'element-plus';
 import { getToken } from '@/composables/auth'
+import { toast } from '@/composables/utils'
 
 export const service = axios.create({
   baseURL: '/api'
@@ -25,10 +25,6 @@ service.interceptors.response.use(function (response) {
   return response.data.data;
 }, function (error) {
   // 处理错误弹窗
-  ElNotification({
-    message: error.response.data.msg || '请求失败',
-    type: 'error',
-    duration: 3000
-  })
+  toast(error.response.data.msg, 3000, 'error')
   return Promise.reject(error);
 });

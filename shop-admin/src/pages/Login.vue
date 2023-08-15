@@ -1,9 +1,12 @@
 <script setup>
 import { ref, reactive } from 'vue'
-import { login, getInfo } from '@/api/manager'
-import { ElNotification } from 'element-plus';
 import { useRouter } from 'vue-router'
+import { useStore } from 'vuex'
+
+import { login, getInfo } from '@/api/manager'
 import { setToken } from '@/composables/auth'
+import { toast } from '@/composables/utils'
+import { SET_USERINFO } from '@/store/mutations-type'
 
 // form表单的数据源
 const form = reactive({
@@ -25,6 +28,7 @@ const rules = {
 // 获取form表单元素
 const formRef = ref(null)
 const router = useRouter()
+const store = useStore()
 const loading = ref(false)
 // 登录按钮的逻辑
 const onSubmit = () => {
@@ -36,17 +40,12 @@ const onSubmit = () => {
     login(form.username, form.password)
     .then(res => {
       // 成功弹窗
-      ElNotification({
-        message: '登录成功',
-        type: 'success',
-        duration: 3000
-      })
-
+      toast('登录成功', 3000)
       // 存储cookie
       setToken(res.token)
       // 获取用户信息
       getInfo().then(res2 => {
-        console.log(res2)
+        store.commit(SET_USERINFO, res2)
       })
 
       // 跳转到首页
