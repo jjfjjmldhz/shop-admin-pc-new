@@ -4,7 +4,6 @@
 
 <template>
   <div class="app">
-    <!-- router-view: 占位 -->
     <router-view></router-view>
   </div>
 </template>
