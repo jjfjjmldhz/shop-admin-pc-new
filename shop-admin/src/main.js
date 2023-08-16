@@ -1,11 +1,15 @@
 import { createApp } from 'vue'
-import App from './App.vue'
+import { router } from '@/router'
+
 import ElemenntPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import 'virtual:windi.css'
-import { router } from '@/router'
+import 'nprogress/nprogress.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { store } from '@/store'
+import '@/permission'
+
+import App from './App.vue'
 
 const app = createApp(App)
 app.use(ElemenntPlus)

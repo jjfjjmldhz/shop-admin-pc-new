@@ -1,12 +1,9 @@
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
-import { login, getInfo } from '@/api/manage'
-import { setToken } from '@/composables/auth'
 import { toast } from '@/composables/utils'
-import { SET_USERINFO } from '@/store/mutations-type'
 
 // form表单的数据源
 const form = reactive({
@@ -29,6 +26,7 @@ const rules = {
 const formRef = ref(null)
 const router = useRouter()
 const store = useStore()
+// 生成仓库
 const loading = ref(false)
 // 登录按钮的逻辑
 const onSubmit = () => {
@@ -37,27 +35,32 @@ const onSubmit = () => {
     // 有动画
     loading.value = true
     // 调用login方法
-    login(form.username, form.password)
-      .then(res => {
-        // 成功弹窗
-        toast('登录成功', 3000)
-        // 存储cookie
-        setToken(res.token)
-        // 获取用户信息
-        getInfo().then(userInfo => {
-          console.log(userInfo)
-          store.commit(SET_USERINFO, userInfo)
-        })
-
-        // 跳转到首页
-        router.push('/')
-      })
+    store.dispatch('loginActions', form).then((res) => {
+      console.log(res)
+      toast('登录成功')
+      router.push('/')
+    })
       .finally(() => {
         // 结束动画
         loading.value = false
       })
   })
 }
+
+function handleKeyUp(e) {
+  // 用户按下 'Enter' 键
+  if (e.key == 'Enter') onSubmit()
+}
+
+// 页面加载成功: 添加键盘事件
+onMounted(() => {
+  document.addEventListener('keyup', handleKeyUp)
+})
+
+// 页面卸载: 移除键盘事件
+onUnmounted(() => {
+  document.removeEventListener('keyup', handleKeyUp)
+})
 </script>
 
 <template>
@@ -78,7 +81,7 @@ const onSubmit = () => {
         </div>
 
         <!-- form 表单 start -->
-        <el-form class="w-[15.625rem]" :model="form" :rules="rules" ref="formRef">
+        <el-form class="w-[250px]" :model="form" :rules="rules" ref="formRef">
           <!-- 文本框 start -->
           <el-form-item prop="username">
             <el-input v-model="form.username" placeholder="请输入用户名">
@@ -101,8 +104,7 @@ const onSubmit = () => {
             </el-input>
           </el-form-item>
           <el-form-item>
-            <el-button class="w-[15.625rem] rounded-full" type="primary" color="#626aef" @click="onSubmit"
-              :loading="loading">
+            <el-button class="w-[250px] rounded-full" type="primary" color="#626aef" @click="onSubmit" :loading="loading">
               登 录
             </el-button>
           </el-form-item>

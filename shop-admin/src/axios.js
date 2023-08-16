@@ -33,7 +33,7 @@ service.interceptors.response.use(
   // 响应失败拦截
   (error) => {
     // 处理错误弹窗
-    toast(error.data.msg, 3000, 'error')
+    // toast(error.data.msg, 3000, 'error')
 
     return Promise.reject(error)
   }
