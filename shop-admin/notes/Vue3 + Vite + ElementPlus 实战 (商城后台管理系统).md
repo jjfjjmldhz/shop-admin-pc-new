@@ -2,6 +2,10 @@
 
 课程演示地址：http://shopadmin.dishawang.com
 
+用户名： admin
+
+密码：admin
+
 ## 项目分析及基本环境配置
 
 ### 项目涉及技术
