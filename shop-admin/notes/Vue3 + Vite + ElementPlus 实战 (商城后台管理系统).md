@@ -374,7 +374,7 @@ app.mount('#app')
 > windicss使用的是原子化的css处理技术, 代码如下：
 
 ```html
- <button class="类名1 类名2 类名3 类名4 类名5 类名n" style="backgorund: red; paddxxx.. ">按钮</button>
+ <button class="类名1 类名2 类名3 类名4 类名5 类名n">按钮</button>
 ```
 
 > 分析后发现，这种写法是很方便，但是对于代码的可读性而言其实不佳，因为在html结构中有了太多的描述性内容，没有很好的结构和样式相分离这种感觉，所以还要抽离这些原子类名，代码如下：
@@ -385,7 +385,7 @@ app.mount('#app')
 
 ```css
 .btn {
-    @apply 类名1 类名2 类名3 类名4 类名5 类名n
+    @apply 类名1 类名2 类名3 类名4 类名5 类名n;
 }
 ```
 
@@ -1615,7 +1615,7 @@ const rules = {
 
 
 
-## Vue3+Vite实战后台api文档
+## Vue3+Vite实战后台api接口文档
 
 文档地址: http://dishaxy.dishait.cn/shopadminapi/
 
@@ -1679,11 +1679,11 @@ export const service = axios.create({
 
 
 
-### 新建manager.js
+### 新建manage.js
 
-> 目录结构: 在src/api/manager.js
+> 目录结构: 在src/api/manage.js
 
-![image-20230814235405087](https://images.weserv.nl/?url=https://article.biliimg.com/bfs/article/04714944bf5fcce87dcdfd911dd0d7133507e819.png)
+![image-20230814235405087](https://images.weserv.nl/?url=https://article.biliimg.com/bfs/article/4a7611952622ffe41fc8736bdd6e0b20ea894f16.png)
 
 ```js
 // 从src/axios.js导入自己封装的service
@@ -1898,7 +1898,9 @@ export const service = axios.create({
 
 
 
-## 什么是token?
+## token
+
+### 什么是token?
 
 ```sh
 Token在计算机科学和网络安全领域中，是一种用于身份验证和授权的令牌。它可以是一个字符串、数字或其他形式的数据。Token的主要作用是在用户进行身份验证时生成一个唯一的标识符，并在用户进行授权访问时进行验证。它可以防止未经授权的用户访问受限资源，确保只有经过身份验证和授权的用户才能使用特定的服务或功能。
@@ -1912,7 +1914,7 @@ Token还可以用于实现单点登录（SSO）功能。通过使用Token，用�
 
 
 
-## 为什么要将token存储在cookie上?
+### 为什么要将token存储在cookie上?
 
 ```sh
 将Token存储在cookie上是一种常见的做法，主要有以下原因：
@@ -2008,7 +2010,163 @@ npm i universal-cookie
 
 
 
+## 在Login.vue中设置token
+
+![image-20230816180935534](https://images.weserv.nl/?url=https://article.biliimg.com/bfs/article/5996108f686ca5e0b5253aa2b1058b8818a06894.png)
+
+![image-20230816181011035](https://images.weserv.nl/?url=https://article.biliimg.com/bfs/article/f047d9fa66532e66e44e53ccf0f9c7613fdf9d51.png)
+
+
+
+### 更新Login.vue
+
+```vue
+<script setup>
+import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+import { ElNotification } from 'element-plus'
+import { login } from '@/api/manager'
+
+import { useCookies } from '@vueuse/integrations/useCookies'
+
+// 表单数据源
+const form = reactive({
+  username: '',
+  password: ''
+})
+
+// 定义表单的规则
+const rules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 2, max: 5, message: '请输入2~5字的用户名', trigger: 'blur' }
+ ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' }
+  ]
+}
+
+// 获取表单元素
+const formRef = ref(null)
+const router = useRouter()
+const cookie = useCookies()
+// 登录按钮的逻辑
+const onSubmit = () => {
+  formRef.value.validate(valid => {
+    if (!valid) return false
+    // 登录方法
+    login(form.username, form.password)
+      .then(res => {
+        // 弹窗
+        ElNotification({
+          message: '登录成功',
+          type: 'success',
+          duration: 3000
+        })
+
+        // 设置token和用户信息
+        cookie.set('admin-token', res.token)
+
+        // 跳转回后台首页
+        router.push('/')
+      })
+  })
+}
+</script>
+
+<template>
+  <div class="login">
+    <el-row class="row-container">
+      <el-col class="left-col" :lg="16" :md="12">
+        <div>
+          <h2 class="title">欢迎光临</h2>
+          <div class="sub-title">此站点是《Vue3实战商城后台管理系统开发》视频课程的演示地址</div>
+        </div>
+      </el-col>
+      <el-col class="right-col" :lg="8" :md="12">
+        <h2 class="title">欢迎回来</h2>
+        <div class="account">
+          <span class="line"></span>
+          <span>账号密码登录</span>
+          <span class="line"></span>
+        </div>
+        <!-- form表单 start -->
+        <el-form class="w-[250px]" :model="form" :rules="rules" ref="formRef">
+          <el-form-item prop="username">
+            <el-input v-model="form.username" placeholder="请输入用户名">
+              <template #prefix>
+                <el-icon>
+                  <User />
+                </el-icon>
+              </template>
+            </el-input>
+          </el-form-item>
+          <el-form-item prop="password">
+            <el-input v-model="form.password" placeholder="请输入密码" type="password" show-password>
+              <template #prefix>
+                <el-icon>
+                  <Lock />
+                </el-icon>
+              </template>
+            </el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-button class="w-[250px]" type="primary" color="#626aef" round @click="onSubmit">
+              登 录
+            </el-button>
+          </el-form-item>
+        </el-form>
+        <!-- form表单 end -->
+      </el-col>
+    </el-row>
+  </div>
+</template>
+
+<style lang="less" scoped>
+.row-container {
+  @apply min-h-screen;
+
+  .left-col {
+    @apply flex justify-center items-center text-light-50 bg-indigo-500;
+
+    .title {
+      @apply text-5xl font-bold mb-6;
+    }
+
+    .sub-title {
+      @apply text-sm text-gray-200;
+    }
+  }
+
+  .right-col {
+    @apply flex flex-col items-center justify-center;
+
+    .title {
+      @apply font-bold text-3xl text-gray-900;
+    }
+
+    .account {
+      @apply flex items-center space-x-2 my-5 text-gray-300;
+
+      .line {
+        @apply w-16 h-px bg-gray-300;
+      }
+    }
+  }
+}
+</style>
+```
+
+
+
+
+
 ## 拦截器
+
+![image-20230813165950768](https://images.weserv.nl/?url=https://article.biliimg.com/bfs/article/74875a04deb0abf540ca32cef0aaf23e17e2ea15.png)
+
+
 
 ### 响应拦截器的使用场景
 
@@ -2018,14 +2176,70 @@ npm i universal-cookie
 
 
 
-#### 配置响应拦截器代码
+#### 二、可以用来统一处理报错信息
 
-![image-20230813165950768](https://images.weserv.nl/?url=https://article.biliimg.com/bfs/article/74875a04deb0abf540ca32cef0aaf23e17e2ea15.png)
+![image-20230816182805423](E:\web前端代码\20230815\shop-admin-pc-new\shop-admin\notes\assets\image-20230816182829262.png)
 
-### 二、可以用来统一处理报错信息
+
+
+### 响应拦截器代码
 
 ```sh
+// ElementPlus (通知)
+import { ElNotification } from 'element-plus'
+
+// 添加响应拦截器
+service.interceptors.response.use(
+  // 成功
+  (response) => {
+    // 拦截冗余的data
+    return response.data.data
+  },
+  (error) => {
+    // 统一处理报错信息
+    ElNotification({
+      message: error.response.data.msg || '请求失败',
+      type: 'error',
+      duration: 3000
+    })
+    return Promise.reject(error)
+  }
+)
+```
+
+
+
+### 请求拦截器代码
+
+> 请求拦截器是在请求之前去head头当中自动添加上这一个token，那我们之后的所有的相关接口就不需要单独去传这一个token了
+
+```vue
+// cookie
+import { useCookies } from '@vueuse/integrations/useCookies'
+
+// 添加请求拦截器(request)
+service.interceptors.request.use(
+  (config) => {
+    const cookie = useCookies()
+    const token = cookie.get('admin-token')
+    if (token) {
+      config.headers['token'] = token
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+```
+
+
+
+### 更新axios.js
+
+```js
 import axios from "axios"
+  
 // ElementPlus (通知)
 import { ElNotification } from 'element-plus'
 // cookie
@@ -2036,108 +2250,235 @@ export const service = axios.create({
   baseURL: "/api"
 })
 
-// // 添加请求拦截器(request)
-service.interceptors.request.use(function (config) {
-  // 在发送请求之前做些什么(headers)
-  const cookie = useCookies()
-  const token = cookie.get('admin-token')
-  if (token) {
-    config.headers['token'] = token
+// 添加请求拦截器(request)
+service.interceptors.request.use(
+  (config) => {
+    const cookie = useCookies()
+    const token = cookie.get('admin-token')
+    if (token) {
+      config.headers['token'] = token
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
   }
+)
 
-  return config;
-}, function (error) {
-  // 对请求错误做些什么
-  return Promise.reject(error);
-});
-
-// 添加响应拦截器(response.data.msg)
-service.interceptors.response.use(function (response) {
-  // 对响应数据做点什么
-  // 弹窗
-  ElNotification({
-    message: '登录成功',
-    type: 'success',
-    duration: 3000
-  })
-  // 1.拦截冗余的data
-  return response.data.data;
-}, function (error) {
-  console.log(error)
-  // 对响应错误做点什么
-  // 2.统一处理报错信息
-  ElNotification({
-    // || '请求失败', 是用来兜底的
-    message: error.response.data.msg || '请求失败',
-    type: 'error',
-    duration: 3000
-  })
-  return Promise.reject(error);
-});
+// 添加响应拦截器
+service.interceptors.response.use(
+  // 成功
+  (response) => {
+    // 拦截冗余的data
+    return response.data.data
+  },
+  (error) => {
+    // 统一处理报错信息
+    ElNotification({
+      message: error.response.data.msg || '请求失败',
+      type: 'error',
+      duration: 3000
+    })
+    return Promise.reject(error)
+  }
+)
 ```
 
 
 
-## 配置请求请求拦截器代码
+### 封装getInfo方法, 用来获取用户的信息和权限
 
-> 请求拦截器是在请求之前去head头当中自动添加上这一个token，那我们之后的所有的相关接口就不需要单独去传这一个token了
-
-```vue
-// cookie
-import { useCookies } from '@vueuse/integrations/useCookies'
-
-// // 添加请求拦截器(request)
-service.interceptors.request.use(function (config) {
-  // 在发送请求之前做些什么(headers)
-  const cookie = useCookies()
-  const token = cookie.get('admin-token')
-  if (token) {
-	// 处理头部信息
-    config.headers['token'] = token
-  }
-
-  return config;
-}, function (error) {
-  // 对请求错误做些什么
-  return Promise.reject(error);
-});
-```
+![image-20230816183600405](https://images.weserv.nl/?url=https://article.biliimg.com/bfs/article/129d2e71bdeeb1b8ed5522a220ca6bd0fd1cb8f5.png)
 
 
 
-## 接口文档的管理员信息和权限菜单
+### 确实请求方式为post
 
 ![image-20230813204254022](https://images.weserv.nl/?url=https://article.biliimg.com/bfs/article/a39e72532d3df8abab2cb82da0e4d92640d19174.png)
 
-
-
-### 封装getInfo方法, 用来获取 用户 的信息和权限
-
-### manager.js
+### 更新manage.js (getInfo方法 (获取信息))
 
 ```js
 import { service } from '@/axios'
 
-function login(username, password) {
-  return service.post("/admin/login", {
+export function login(username, password) {
+  return service.post('/admin/login', {
     username,
     password
   })
 }
 
-function getInfo() {
-  return service.post("/admin/getinfo")
-}
-
-export {
-  login,
-  getInfo
+// getInfo方法 (获取信息
+export function getInfo() {
+  return service.post('/admin/getinfo')
 }
 ```
 
 
 
+### 在Login.vue中获取用户信息权限
+
+![image-20230816183842406](https://images.weserv.nl/?url=https://article.biliimg.com/bfs/article/5f1fdc55384d986f4a70fb99bab521ba8ecd870d.png)
+
+![image-20230816183921306](https://images.weserv.nl/?url=https://article.biliimg.com/bfs/article/4e32e824dca04f2ab1c833d3a45903e3f8b9d407.png)
+
+### 更新Login.vue
+
+```vue
+<script setup>
+import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+import { ElNotification } from 'element-plus'
+import { login, getInfo } from '@/api/manage'
+
+import { useCookies } from '@vueuse/integrations/useCookies'
+
+// 表单数据源
+const form = reactive({
+  username: '',
+  password: ''
+})
+
+// 定义表单的规则
+const rules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 2, max: 5, message: '请输入2~5字的用户名', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' }
+  ]
+}
+
+// 获取表单元素
+const formRef = ref(null)
+const router = useRouter()
+const cookie = useCookies()
+const loading = ref(false)
+// 登录按钮的逻辑
+const onSubmit = () => {
+  formRef.value.validate(valid => {
+    if (!valid) return false
+
+    loading.value = true
+
+    // 登录方法
+    login(form.username, form.password)
+      .then(res => {
+        // 弹窗
+        ElNotification({
+          message: '登录成功',
+          type: 'success',
+          duration: 3000
+        })
+
+        // 设置token
+        cookie.set('admin-token', res.token)
+
+        // 获取用户信息
+        getInfo().then(res2 => {
+          console.log(res2)
+        })
+
+        // 跳转回后台首页
+        router.push('/')
+      })
+      .finally(() => {
+        loading.value = false
+      })
+  })
+}
+</script>
+
+<template>
+  <div class="login">
+    <el-row class="row-container">
+      <el-col class="left-col" :lg="16" :md="12">
+        <div>
+          <h2 class="title">欢迎光临</h2>
+          <div class="sub-title">此站点是《Vue3实战商城后台管理系统开发》视频课程的演示地址</div>
+        </div>
+      </el-col>
+      <el-col class="right-col" :lg="8" :md="12">
+        <h2 class="title">欢迎回来</h2>
+        <div class="account">
+          <span class="line"></span>
+          <span>账号密码登录</span>
+          <span class="line"></span>
+        </div>
+        <!-- form表单 start -->
+        <el-form class="w-[250px]" :model="form" :rules="rules" ref="formRef">
+          <el-form-item prop="username">
+            <el-input v-model="form.username" placeholder="请输入用户名">
+              <template #prefix>
+                <el-icon>
+                  <User />
+                </el-icon>
+              </template>
+            </el-input>
+          </el-form-item>
+          <el-form-item prop="password">
+            <el-input v-model="form.password" placeholder="请输入密码" type="password" show-password>
+              <template #prefix>
+                <el-icon>
+                  <Lock />
+                </el-icon>
+              </template>
+            </el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-button class="w-[250px]" type="primary" color="#626aef" round @click="onSubmit" :loading="loading">
+              登 录
+            </el-button>
+          </el-form-item>
+        </el-form>
+        <!-- form表单 end -->
+      </el-col>
+    </el-row>
+  </div>
+</template>
+
+<style lang="less" scoped>
+.row-container {
+  @apply min-h-screen;
+
+  .left-col {
+    @apply flex justify-center items-center text-light-50 bg-indigo-500;
+
+    .title {
+      @apply text-5xl font-bold mb-6;
+    }
+
+    .sub-title {
+      @apply text-sm text-gray-200;
+    }
+  }
+
+  .right-col {
+    @apply flex flex-col items-center justify-center;
+
+    .title {
+      @apply font-bold text-3xl text-gray-900;
+    }
+
+    .account {
+      @apply flex items-center space-x-2 my-5 text-gray-300;
+
+      .line {
+        @apply w-16 h-px bg-gray-300;
+      }
+    }
+  }
+}
+</style>@/api/manage
+```
+
+
+
 ### 给登录按钮加上loading动画
+
+> 在请求之前加上loading开始动画, 请求之后结束动画
 
 ```vue
 // 点击按钮加载动画的逻辑
@@ -2172,6 +2513,240 @@ const onSubmit = () => {
   })
 }
 ```
+
+
+
+## 常用工具库封装
+
+### 封装cookie
+
+![image-20230816191907895](E:\web前端代码\20230815\shop-admin-pc-new\shop-admin\notes\assets\image-20230816191914384.png)
+
+
+
+### 更新Login.vue (使用setToken方法简化设置token的代码)
+
+![image-20230816192546961](https://images.weserv.nl/?url=https://article.biliimg.com/bfs/article/3578e20fe72a67e8c45de5724549afe48a0f6f0e.png)
+
+![image-20230816192735653](https://images.weserv.nl/?url=https://article.biliimg.com/bfs/article/c857115240606a3344b603a0a8dfff32fa72ec48.png)
+
+```vue
+<script setup>
+import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+import { ElNotification } from 'element-plus'
+import { login, getInfo } from '@/api/manage'
+
+import { useCookies } from '@vueuse/integrations/useCookies'
+
+import { setToken } from '@/composables/auth'
+
+
+
+// 表单数据源
+const form = reactive({
+  username: '',
+  password: ''
+})
+
+// 定义表单的规则
+const rules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 2, max: 5, message: '请输入2~5字的用户名', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' }
+  ]
+}
+
+// 获取表单元素
+const formRef = ref(null)
+const router = useRouter()
+const cookie = useCookies()
+const loading = ref(false)
+// 登录按钮的逻辑
+const onSubmit = () => {
+  formRef.value.validate(valid => {
+    if (!valid) return false
+
+    loading.value = true
+
+    // 登录方法
+    login(form.username, form.password)
+      .then(res => {
+        // 弹窗
+        ElNotification({
+          message: '登录成功',
+          type: 'success',
+          duration: 3000
+        })
+
+        // 设置token
+        cookie.set('admin-token', res.token)
+
+        setToken(res.token)
+
+        // 获取用户信息
+        getInfo().then(res2 => {
+          console.log(res2)
+        })
+
+        // 跳转回后台首页
+        router.push('/')
+      })
+      .finally(() => {
+        loading.value = false
+      })
+  })
+}
+</script>
+
+<template>
+  <div class="login">
+    <el-row class="row-container">
+      <el-col class="left-col" :lg="16" :md="12">
+        <div>
+          <h2 class="title">欢迎光临</h2>
+          <div class="sub-title">此站点是《Vue3实战商城后台管理系统开发》视频课程的演示地址</div>
+        </div>
+      </el-col>
+      <el-col class="right-col" :lg="8" :md="12">
+        <h2 class="title">欢迎回来</h2>
+        <div class="account">
+          <span class="line"></span>
+          <span>账号密码登录</span>
+          <span class="line"></span>
+        </div>
+        <!-- form表单 start -->
+        <el-form class="w-[250px]" :model="form" :rules="rules" ref="formRef">
+          <el-form-item prop="username">
+            <el-input v-model="form.username" placeholder="请输入用户名">
+              <template #prefix>
+                <el-icon>
+                  <User />
+                </el-icon>
+              </template>
+            </el-input>
+          </el-form-item>
+          <el-form-item prop="password">
+            <el-input v-model="form.password" placeholder="请输入密码" type="password" show-password>
+              <template #prefix>
+                <el-icon>
+                  <Lock />
+                </el-icon>
+              </template>
+            </el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-button class="w-[250px]" type="primary" color="#626aef" round @click="onSubmit" :loading="loading">
+              登 录
+            </el-button>
+          </el-form-item>
+        </el-form>
+        <!-- form表单 end -->
+      </el-col>
+    </el-row>
+  </div>
+</template>
+
+<style lang="less" scoped>
+.row-container {
+  @apply min-h-screen;
+
+  .left-col {
+    @apply flex justify-center items-center text-light-50 bg-indigo-500;
+
+    .title {
+      @apply text-5xl font-bold mb-6;
+    }
+
+    .sub-title {
+      @apply text-sm text-gray-200;
+    }
+  }
+
+  .right-col {
+    @apply flex flex-col items-center justify-center;
+
+    .title {
+      @apply font-bold text-3xl text-gray-900;
+    }
+
+    .account {
+      @apply flex items-center space-x-2 my-5 text-gray-300;
+
+      .line {
+        @apply w-16 h-px bg-gray-300;
+      }
+    }
+  }
+}
+</style>@/api/manage
+```
+
+
+
+### 更新axios.js 使用 getToken方法简化请求拦截器中的代码
+
+![image-20230816193128866](https://images.weserv.nl/?url=https://article.biliimg.com/bfs/article/f52bcfaae490287bd0ba0efe7d320bb7115cfca1.png)
+
+![image-20230816193244439](https://images.weserv.nl/?url=https://article.biliimg.com/bfs/article/4ef5adef441219d3382b8c9bf045da62d96803a4.png)
+
+```js
+import axios from "axios"
+  
+// ElementPlus (通知)
+import { ElNotification } from 'element-plus'
+// cookie
+import { useCookies } from '@vueuse/integrations/useCookies'
+
+// 导入getToken
+import { getToken } from '@/composables/auth'
+
+export const service = axios.create({
+  // 将baseURL替换为'/api'
+  baseURL: "/api"
+})
+
+// 添加请求拦截器(request)
+service.interceptors.request.use(
+  (config) => {
+    const cookie = useCookies()
+    // const token = cookie.get('admin-token')
+
+    const token = getToken()
+    if (token) {
+      config.headers['token'] = token
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+
+// 添加响应拦截器
+service.interceptors.response.use(
+  // 成功
+  (response) => {
+    // 拦截冗余的data
+    return response.data.data
+  },
+  (error) => {
+    // 统一处理报错信息
+    ElNotification({
+      message: error.response.data.msg || '请求失败',
+      type: 'error',
+      duration: 3000
+    })
+    return Promise.reject(error)
+  }
+)
+```
+
+
 
 
 
@@ -2327,5 +2902,90 @@ getInfo().then(res2 => {
 })
 
 </script>
+```
+
+
+
+## 导航守卫
+
+### 全局前置守卫
+
+> 让路由重定向到后台首页的行为, 更改成一打开项目就定位到登录界面, 如果已经有token了, 才让其正常重定向到后台首页。
+
+
+
+### 新建permission.js
+
+![image-20230816222434692](https://images.weserv.nl/?url=https://article.biliimg.com/bfs/article/e987abe76f5ade10ced86f98fc6c15339852a788.png)
+
+```js
+import { router } from '@/router'
+
+import { getToken } from '@/composables/auth'
+import { toast } from '@/composables/utils'
+
+// 全局前置守卫
+// 方案一:
+router.beforeEach((to, from) => {
+  const token = getToken() 
+  if (!token && to.path !== '/login') {
+    toast('请先登录', 3000, 'warning')
+    return '/login'
+  }
+
+  if (token && to.path === '/login') {
+    toast('请勿重复登录', 3000, 'error')
+    return from.path ? from.path : '/'
+  }
+})
+
+// 全局前置守卫
+// 方案二:
+// router.beforeEach((to, from, next) => {
+//   // 没有登录的用户, 强制跳转到登录页面
+//   const token = getToken()
+//   if (!token && to.path !== '/login') {
+//     toast('请先登录', 3000, 'warning')
+//     return next({ path: '/login' })
+//   }
+
+//   // 请勿重复登录
+//   if (token && to.path === '/login') {
+//     toast('请勿重复登录', 3000, 'error')
+//     return next({ path: from.path ? from.path : '/' })
+//   }
+
+//   // 放行
+//   next()
+// })
+```
+
+
+
+### 在main.js中使用permission.js
+
+![image-20230816222541927](https://images.weserv.nl/?url=https://article.biliimg.com/bfs/article/3021ef183b6ac2b6279c6162b0b600815599b478.png)
+
+```main.js
+import { createApp } from 'vue'
+import { router } from '@/router'
+
+import ElemenntPlus from 'element-plus'
+import 'element-plus/dist/index.css'
+import 'virtual:windi.css'
+import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+import { store } from '@/store'
+import '@/permission'
+
+import App from './App.vue'
+
+const app = createApp(App)
+app.use(ElemenntPlus)
+app.use(store)
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+  app.component(key, component)
+}
+app.use(router)
+app.mount('#app')
 ```
 
