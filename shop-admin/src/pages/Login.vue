@@ -3,7 +3,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
-import { login, getInfo } from '@/api/manager'
+import { login, getInfo } from '@/api/manage'
 import { setToken } from '@/composables/auth'
 import { toast } from '@/composables/utils'
 import { SET_USERINFO } from '@/store/mutations-type'
@@ -21,7 +21,7 @@ const rules = {
     { min: 2, max: 5, message: '请输入2~5长度的用户名', trigger: 'blur' }
   ],
   password: [
-  { required: true, message: '请输入密码', trigger: 'blur' },
+    { required: true, message: '请输入密码', trigger: 'blur' },
   ]
 }
 
@@ -38,23 +38,24 @@ const onSubmit = () => {
     loading.value = true
     // 调用login方法
     login(form.username, form.password)
-    .then(res => {
-      // 成功弹窗
-      toast('登录成功', 3000)
-      // 存储cookie
-      setToken(res.token)
-      // 获取用户信息
-      getInfo().then(res2 => {
-        store.commit(SET_USERINFO, res2)
-      })
+      .then(res => {
+        // 成功弹窗
+        toast('登录成功', 3000)
+        // 存储cookie
+        setToken(res.token)
+        // 获取用户信息
+        getInfo().then(userInfo => {
+          console.log(userInfo)
+          store.commit(SET_USERINFO, userInfo)
+        })
 
-      // 跳转到首页
+        // 跳转到首页
         router.push('/')
       })
-    .finally(() => {
-      // 结束动画
-      loading.value = false
-    })
+      .finally(() => {
+        // 结束动画
+        loading.value = false
+      })
   })
 }
 </script>
@@ -77,43 +78,32 @@ const onSubmit = () => {
         </div>
 
         <!-- form 表单 start -->
-        <el-form 
-          class="w-[15.625rem]"
-          :model="form"
-          :rules="rules"
-          ref="formRef"
-        >
+        <el-form class="w-[15.625rem]" :model="form" :rules="rules" ref="formRef">
           <!-- 文本框 start -->
           <el-form-item prop="username">
             <el-input v-model="form.username" placeholder="请输入用户名">
               <template #prefix>
-                <el-icon><User /></el-icon>
+                <el-icon>
+                  <User />
+                </el-icon>
               </template>
             </el-input>
           </el-form-item>
           <!-- 文本框 end -->
           <!-- 密码框 -->
           <el-form-item prop="password">
-            <el-input 
-              v-model="form.password" 
-              placeholder="请输入密码" 
-              type="password"
-              show-password
-            >
+            <el-input v-model="form.password" placeholder="请输入密码" type="password" show-password>
               <template #prefix>
-                <el-icon><Lock /></el-icon>
+                <el-icon>
+                  <Lock />
+                </el-icon>
               </template>
             </el-input>
           </el-form-item>
           <el-form-item>
-            <el-button 
-              class="w-[15.625rem] rounded-full" 
-              type="primary"
-              color="#626aef"
-              @click="onSubmit"
-              :loading="loading"
-            >
-                登 录
+            <el-button class="w-[15.625rem] rounded-full" type="primary" color="#626aef" @click="onSubmit"
+              :loading="loading">
+              登 录
             </el-button>
           </el-form-item>
         </el-form>
@@ -125,60 +115,36 @@ const onSubmit = () => {
 
 <style lang="less" scoped>
 .row-container {
-  @apply
-    min-h-screen;
-    // 左列
-    .left-col {
-      @apply
-        flex
-        justify-center
-        items-center
-        text-light-50
-        bg-indigo-500;
+  @apply min-h-screen;
 
-        .title {
-          @apply
-            font-bold
-            text-5xl
-            mb-6;
-        }
+  // 左列
+  .left-col {
+    @apply flex justify-center items-center text-light-50 bg-indigo-500;
 
-        .sub-title {
-          @apply
-            text-gray-200
-            text-sm;
-        }
+    .title {
+      @apply font-bold text-5xl mb-6;
     }
 
-    // 右列
-    .right-col {
-      @apply
-        flex
-        flex-col
-        justify-center
-        items-center;
-
-        .title {
-          @apply
-            text-3xl
-            font-bold
-            text-gray-900;
-          }
-            .account {
-              @apply
-                flex
-                items-center
-                space-x-2
-                my-5
-                text-gray-300;
-
-                .line {
-                  @apply
-                    w-16
-                    h-px
-                    bg-gray-300;
-                }
-            }
+    .sub-title {
+      @apply text-gray-200 text-sm;
     }
+  }
+
+  // 右列
+  .right-col {
+    @apply flex flex-col justify-center items-center;
+
+    .title {
+      @apply text-3xl font-bold text-gray-900;
+    }
+
+    .account {
+      @apply flex items-center space-x-2 my-5 text-gray-300;
+
+      .line {
+        @apply w-16 h-px bg-gray-300;
+      }
+    }
+  }
 }
-</style>
+</style>@/api/manage

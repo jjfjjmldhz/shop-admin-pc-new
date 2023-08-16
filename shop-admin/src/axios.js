@@ -6,25 +6,35 @@ export const service = axios.create({
   baseURL: '/api'
 })
 
-// 添加请求拦截器
-service.interceptors.request.use(function (config) {
-  // 在headers中自动设置token
-  const token = getToken()
-  if (token) {
-    config.headers['token'] = token
-  }
-  return config;
-}, function (error) {
-  // 对请求错误做些什么
-  return Promise.reject(error);
-});
+// 请求拦截器
+service.interceptors.request.use(
+  // 请求拦截成功
+  // 在请求成功自动配置headers中的内容
+  (config) => {
+    // 获取token
+    const token = getToken()
+    if (token) {
+      config.headers['token'] = token
+    }
 
-// 添加响应拦截器
-service.interceptors.response.use(function (response) {
-  // 响应成功的只处理冗余的data
-  return response.data.data;
-}, function (error) {
-  // 处理错误弹窗
-  toast(error.response.data.msg, 3000, 'error')
-  return Promise.reject(error);
-});
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+
+// 响应拦截器
+service.interceptors.response.use(
+  // 响应成功拦截: 处理冗余的data
+  (response) => {
+    return response.data.data
+  },
+  // 响应失败拦截
+  (error) => {
+    // 处理错误弹窗
+    toast(error.data.msg, 3000, 'error')
+
+    return Promise.reject(error)
+  }
+)
