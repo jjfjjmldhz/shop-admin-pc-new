@@ -1,11 +1,13 @@
 <script setup>
-import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { reactive, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { store } from '@/store'
 
+import { login } from '@/api/manage'
 import { toast } from '@/composables/utils'
+import { setToken } from '@/composables/auth'
 
-// form表单的数据源
+// 定义表单数据源
 const form = reactive({
   username: '',
   password: ''
@@ -15,51 +17,49 @@ const form = reactive({
 const rules = {
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 2, max: 5, message: '请输入2~5长度的用户名', trigger: 'blur' }
+    { min: 2, max: 5, message: '请输入2-5个长度的用户名', trigger: 'blur' }
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
   ]
 }
 
-// 获取form表单元素
+// 获取form元素
 const formRef = ref(null)
+// router实例
 const router = useRouter()
-const store = useStore()
-// 生成仓库
+// loading动画
 const loading = ref(false)
+
 // 登录按钮的逻辑
 const onSubmit = () => {
   formRef.value.validate(valid => {
+    // 有值的时候才触发提交
     if (!valid) return false
-    // 有动画
+    // 开始动画
     loading.value = true
-    // 调用login方法
-    store.dispatch('loginActions', form).then((res) => {
-      console.log(res)
-      toast('登录成功')
-      router.push('/')
-    })
-      .finally(() => {
-        // 结束动画
-        loading.value = false
-      })
-  })
+    // 派发actions
+    store.dispatch('loginActions', form)
+      .then(res => {
+        // 成功弹窗
+        toast('登录成功', 'success')       
+        // 跳转到首页
+        router.push('/')
+      }).finally(() => loading.value = false)
+  }) 
 }
 
-function handleKeyUp(e) {
-  // 用户按下 'Enter' 键
-  if (e.key == 'Enter') onSubmit()
+function handleKeyup(e) {
+  if (e.key === 'Enter') onSubmit()
 }
 
-// 页面加载成功: 添加键盘事件
+// 页面挂载
 onMounted(() => {
-  document.addEventListener('keyup', handleKeyUp)
+  document.addEventListener('keyup', handleKeyup)
 })
-
-// 页面卸载: 移除键盘事件
+// 页面卸载
 onUnmounted(() => {
-  document.removeEventListener('keyup', handleKeyUp)
+  document.removeEventListener('keyup', handleKeyup)
 })
 </script>
 
@@ -79,12 +79,19 @@ onUnmounted(() => {
           <span>账号密码登录</span>
           <span class="line"></span>
         </div>
-
-        <!-- form 表单 start -->
-        <el-form class="w-[250px]" :model="form" :rules="rules" ref="formRef">
-          <!-- 文本框 start -->
+        <!-- form表单 -->
+        <el-form
+          class="w-[250px]"
+          :model="form"
+          :rules="rules"
+          ref="formRef"
+        >
           <el-form-item prop="username">
-            <el-input v-model="form.username" placeholder="请输入用户名">
+            <!-- 文本框 -->
+            <el-input 
+              v-model="form.username"
+              placeholder="请输入用户名"
+            >
               <template #prefix>
                 <el-icon>
                   <User />
@@ -92,10 +99,13 @@ onUnmounted(() => {
               </template>
             </el-input>
           </el-form-item>
-          <!-- 文本框 end -->
-          <!-- 密码框 -->
-          <el-form-item prop="password">
-            <el-input v-model="form.password" placeholder="请输入密码" type="password" show-password>
+            <!-- 密码框 -->
+            <el-form-item prop="password">
+            <el-input 
+              v-model="form.password"
+              placeholder="请输入密码"
+              show-password
+            >
               <template #prefix>
                 <el-icon>
                   <Lock />
@@ -103,13 +113,11 @@ onUnmounted(() => {
               </template>
             </el-input>
           </el-form-item>
+          <!-- 登录按钮 -->
           <el-form-item>
-            <el-button class="w-[250px] rounded-full" type="primary" color="#626aef" @click="onSubmit" :loading="loading">
-              登 录
-            </el-button>
+            <el-button class="w-[250px]" color="#626aef" round @click="onSubmit" :loading="loading">登 录</el-button>
           </el-form-item>
         </el-form>
-        <!-- form 表单 end -->
       </el-col>
     </el-row>
   </div>
@@ -117,36 +125,60 @@ onUnmounted(() => {
 
 <style lang="less" scoped>
 .row-container {
-  @apply min-h-screen;
+  @apply
+    min-h-screen;
 
-  // 左列
-  .left-col {
-    @apply flex justify-center items-center text-light-50 bg-indigo-500;
+    .left-col {
+      @apply
+        flex
+        justify-center
+        items-center
+        text-light-50
+        bg-indigo-500;
 
-    .title {
-      @apply font-bold text-5xl mb-6;
+        .title {
+          @apply
+            text-5xl
+            font-bold
+            mb-6;
+        }
+
+        .sub-title {
+          @apply
+            text-gray-200
+            text-sm;
+        }
     }
 
-    .sub-title {
-      @apply text-gray-200 text-sm;
+    .right-col {
+      @apply
+        flex
+        flex-col
+        items-center
+        justify-center;
+
+        .title {
+          @apply
+            text-gray-900
+            text-3xl
+            font-bold;
+        }
+
+        .account {
+          @apply
+            flex
+            items-center
+            space-x-2
+            my-5
+            text-gray-300;
+
+            .line {
+              @apply
+                w-16
+                h-px
+                bg-gray-300;
+            }
+        }
     }
-  }
-
-  // 右列
-  .right-col {
-    @apply flex flex-col justify-center items-center;
-
-    .title {
-      @apply text-3xl font-bold text-gray-900;
-    }
-
-    .account {
-      @apply flex items-center space-x-2 my-5 text-gray-300;
-
-      .line {
-        @apply w-16 h-px bg-gray-300;
-      }
-    }
-  }
 }
-</style>@/api/manage
+</style>

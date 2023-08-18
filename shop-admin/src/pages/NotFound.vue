@@ -2,7 +2,7 @@
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
-const errorTip = `您输入的路径 ${route.params.pathMatch} 不存在, 请重新输入!`
+const errorTip = `您输入的路径: ${route.params.pathMatch} 不存在, 请重新输入或者返回首页!`
 </script>
 
 <template>
@@ -10,7 +10,8 @@ const errorTip = `您输入的路径 ${route.params.pathMatch} 不存在, 请重
     <el-result
       icon="warning"
       title="404页面"
-      :sub-title="errorTip">
+      :sub-title="errorTip"
+    >
       <template #extra>
         <el-button type="primary" @click="$router.push('/')">返回首页</el-button>
       </template>

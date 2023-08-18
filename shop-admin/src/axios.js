@@ -1,6 +1,7 @@
 import axios from 'axios'
-import { getToken } from '@/composables/auth'
+
 import { toast } from '@/composables/utils'
+import { getToken } from '@/composables/auth'
 
 export const service = axios.create({
   baseURL: '/api'
@@ -8,15 +9,11 @@ export const service = axios.create({
 
 // 请求拦截器
 service.interceptors.request.use(
-  // 请求拦截成功
-  // 在请求成功自动配置headers中的内容
   (config) => {
-    // 获取token
     const token = getToken()
     if (token) {
       config.headers['token'] = token
     }
-
     return config
   },
   (error) => {
@@ -26,15 +23,13 @@ service.interceptors.request.use(
 
 // 响应拦截器
 service.interceptors.response.use(
-  // 响应成功拦截: 处理冗余的data
   (response) => {
+    // 拦截冗余的data
     return response.data.data
   },
-  // 响应失败拦截
   (error) => {
-    // 处理错误弹窗
-    // toast(error.data.msg, 3000, 'error')
-
+    // 统一处理错误信息
+    toast(error.response.data.msg || '请求失败', 'error')
     return Promise.reject(error)
   }
 )

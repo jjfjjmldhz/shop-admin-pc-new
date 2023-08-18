@@ -1,34 +1,33 @@
 import { ElNotification, ElMessageBox } from 'element-plus'
 import nprogress from 'nprogress'
 
-// 弹窗封装
-export function toast(message, duration = 3000, type = 'success', dangerouslyUseHTMLString,) {
-  ElNotification({
+// 普通弹窗
+export function toast(message, type, duration = 3000) {
+  return ElNotification({
     message,
     type,
-    duration,
-    dangerouslyUseHTMLString
+    duration
   })
 }
 
-// 封装消息弹出框
-export function showModal(content = '提示内容', type = 'warning', title = '') {
+// 按钮弹窗
+export function showModal(content, type = 'warning', title) {
   return ElMessageBox.confirm(
     content,
     title,
     {
-      confirmButtonText: '确认',
+      confirmButtonText: '确定',
       cancelButtonText: '取消',
       type
     }
   )
 }
 
-// 显示全屏loading
+// 显示全屏加载动画
 export function showFullScreenLoading() {
-  return nprogress.start()
+  nprogress.start()
 }
-// 隐藏全屏loading
+// 隐藏全屏加载动画
 export function hideFullScreenLoading() {
-  return nprogress.done()
+  nprogress.done()
 }
